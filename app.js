@@ -15,10 +15,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* Контейнер для карточек */
+/* Контейнер, куда выводятся карточки */
 const giftList = document.getElementById("gift-list");
 
-/* Функция рендера одной карточки */
+/* Рендер одной карточки */
 function renderGift(doc) {
   const data = doc.data();
 
@@ -44,7 +44,7 @@ function renderGift(doc) {
     </button>
   `;
 
-  /* Обработчик клика */
+  /* Обработчик клика по кнопке */
   div.querySelector("button").addEventListener("click", () => {
     if (!data.reserved) {
       db.collection("gifts").doc(doc.id).update({ reserved: true });
@@ -54,8 +54,8 @@ function renderGift(doc) {
   giftList.appendChild(div);
 }
 
-/* Подписка на realtime-обновления */
+/* Реальное-время: слушаем коллекцию gifts */
 db.collection("gifts").onSnapshot((snapshot) => {
-  giftList.innerHTML = "";          // очищаем
-  snapshot.forEach((doc) => renderGift(doc)); // перерисовываем
+  giftList.innerHTML = "";             // очищаем
+  snapshot.forEach((doc) => renderGift(doc)); // выводим заново
 });
