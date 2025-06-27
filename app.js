@@ -1,61 +1,27 @@
-/* app.js */
-
-/* Конфигурация вашего проекта Firebase */
+// Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyC-YmRIRmDvRz8XfNP1d6e01mrb7pL6XE",
-  authDomain: "wish-list-dc0bd.firebaseapp.com",
-  projectId: "wish-list-dc0bd",
-  storageBucket: "wish-list-dc0bd.appspot.com",
-  messagingSenderId: "516019652744",
-  appId: "1:516019652744:web:8699ac66d6db0bb9df73d",
-  measurementId: "G-S9088KLN4P"
+  apiKey: "AIzaSyCJa-dYGC2bnBUYuKhaPkCSGqjFbkqx5BI",
+  authDomain: "wlist-73644.firebaseapp.com",
+  projectId: "wlist-73644",
+  storageBucket: "wlist-73644.firebasestorage.app",
+  messagingSenderId: "979034781813",
+  appId: "1:979034781813:web:0119b8ef52a35d6110a03c",
+  measurementId: "G-G039GYNKQ9"
 };
 
-/* Инициализация Firebase */
+// Инициализация Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* Контейнер, куда выводятся карточки */
-const giftList = document.getElementById("gift-list");
-
-/* Рендер одной карточки */
-function renderGift(doc) {
-  const data = doc.data();
-
-  const div = document.createElement("div");
-  div.className = "p-4 bg-white rounded shadow";
-
-  div.innerHTML = `
-    <h2 class="text-xl font-semibold">${data.name}</h2>
-    <p>${data.description}</p>
-    <p class="mt-2">
-      Статус:
-      <span class="font-bold">${data.reserved ? "Зарезервировано" : "Не зарезервировано"}</span>
-    </p>
-    <button
-      class="mt-2 px-4 py-2 text-white ${
-        data.reserved
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-blue-500 hover:bg-blue-600"
-      } rounded"
-      ${data.reserved ? "disabled" : ""}
-    >
-      ${data.reserved ? "Уже зарезервировано" : "Зарезервировать"}
-    </button>
-  `;
-
-  /* Обработчик клика по кнопке */
-  div.querySelector("button").addEventListener("click", () => {
-    if (!data.reserved) {
-      db.collection("gifts").doc(doc.id).update({ reserved: true });
-    }
+// Получение данных из Firestore и отображение
+db.collection("gifts").get().then((querySnapshot) => {
+  const giftList = document.getElementById("gift-list");
+  querySnapshot.forEach((doc) => {
+    const item = document.createElement("div");
+    item.className = "p-4 bg-white rounded shadow";
+    item.textContent = doc.data().name;
+    giftList.appendChild(item);
   });
-
-  giftList.appendChild(div);
-}
-
-/* Реальное-время: слушаем коллекцию gifts */
-db.collection("gifts").onSnapshot((snapshot) => {
-  giftList.innerHTML = "";             // очищаем
-  snapshot.forEach((doc) => renderGift(doc)); // выводим заново
+}).catch((error) => {
+  console.error("Ошибка при получении данных: ", error);
 });
