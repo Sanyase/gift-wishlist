@@ -1,26 +1,76 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Вишлист</title>
+/* === Firebase конфигурация (не меняйте поля/названия) === */
+const firebaseConfig = {
+  apiKey: "AIzaSyCJa-dYGC2bnBUYuKhaPkCSGqjFbkqx5BI",
+  authDomain: "wlist-73644.firebaseapp.com",
+  projectId: "wlist-73644",
+  storageBucket: "wlist-73644.appspot.com",
+  messagingSenderId: "979034781813",
+  appId: "1:979034781813:web:0119b8ef52a35d6110a03c",
+  measurementId: "G-G039GYNKQ9"
+};
 
-  <!-- Firebase v10 совместимый (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+/* === Инициализация Firebase/Firestore === */
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  <!-- Tailwind для быстрых стилей -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+/* === DOM-контейнер === */
+const giftList = document.getElementById("gift-list");
 
-  <!-- Основной скрипт -->
-  <script defer src="app.js"></script>
-</head>
+/* === Отрисовка одной карточки === */
+function renderGift(doc) {
+  const data = doc.data();
 
-<body class="bg-gray-100 text-gray-900">
-  <div class="max-w-2xl mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">🎁 Вишлист</h1>
-    <!-- Сюда рендерятся карточки -->
-    <div id="gift-list" class="space-y-4"></div>
-  </div>
-</body>
-</html>
+  /* Корневая карточка */
+  const card = document.createElement("div");
+  card.className = "p-4 bg-white rounded shadow";
+
+  /* Заголовок */
+  const title = document.createElement("h2");
+  title.className = "text-lg font-semibold";
+  title.textContent = data.name || "Без названия";
+
+  /* Описание */
+  const desc = document.createElement("p");
+  desc.className = "text-gray-700";
+  desc.textContent = data.description || "";
+
+  /* Статус + кнопка */
+  const statusLine = document.createElement("p");
+  statusLine.className = "mt-2";
+
+  const statusSpan = document.createElement("span");
+  statusSpan.className = "font-bold";
+  statusSpan.textContent = data.reserved ? "Зарезервировано" : "Не зарезервировано";
+  statusLine.textContent = "Статус: ";
+  statusLine.appendChild(statusSpan);
+
+  const btn = document.createElement("button");
+  btn.className =
+    "mt-2 px-4 py-2 text-white rounded " +
+    (data.reserved
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-blue-500 hover:bg-blue-600");
+
+  btn.textContent = data.reserved ? "Уже зарезервировано" : "Зарезервировать";
+  btn.disabled = data.reserved;
+
+  /* Клик по кнопке – обновляем поле reserved */
+  btn.addEventListener("click", () => {
+    if (!data.reserved) {
+      db.collection("gifts").doc(doc.id).update({ reserved: true });
+    }
+  });
+
+  /* Собираем карточку */
+  card.append(title, desc, statusLine, btn);
+  giftList.appendChild(card);
+}
+
+/* === Реальное-время: слушаем коллекцию “gifts” === */
+db.collection("gifts").onSnapshot(
+  (snap) => {
+    giftList.innerHTML = "";          // очищаем список
+    snap.forEach((doc) => renderGift(doc)); // и рендерим заново
+  },
+  (err) => console.error("Firestore error:", err)
+);
